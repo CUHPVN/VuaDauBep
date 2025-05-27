@@ -16,5 +16,8 @@ MonoBehaviour:
   DownloadData:
   - ClassName: TimingData
     SheetId: 0
+  - ClassName: CuttingRecipeData
+    SheetId: 168425813
   Collection:
   - {fileID: 4900000, guid: 3394c53ceff82a2418d48165fe24b02e, type: 3}
+  - {fileID: 4900000, guid: e23501ecda48c3b429f9891225034baf, type: 3}

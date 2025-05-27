@@ -8,6 +8,7 @@ public class GameInput : MonoBehaviour
 {
     public static GameInput instance {  get; private set; }
     public event EventHandler OnInteractAction;
+    public event EventHandler OnInteractAlternateAction;
 
     private InputSystem_Actions playerInputActions;
 
@@ -19,12 +20,20 @@ public class GameInput : MonoBehaviour
         playerInputActions = new InputSystem_Actions();
         playerInputActions.Player.Enable();
         playerInputActions.Player.Interact.performed += Interact_performed;
+        playerInputActions.Player.InteractAlternate.performed += InteractAlternate_performed;
     }
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (OnInteractAction != null)
         {
             OnInteractAction(this, EventArgs.Empty); 
+        }
+    }
+    private void InteractAlternate_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    {
+        if (OnInteractAlternateAction != null)
+        {
+            OnInteractAlternateAction(this, EventArgs.Empty);
         }
     }
 

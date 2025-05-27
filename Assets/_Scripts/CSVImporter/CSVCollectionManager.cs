@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
@@ -89,11 +89,36 @@ public class CSVCollectionManager : ScriptableObject
 			{
 				Collection.Add(textAsset);
 			}else Debug.Log("Error");
-		}
+        }
+        InvokePopulateOnAllCollections();
 
-		EditorUtility.DisplayDialog(title: "Download CSV",
+        EditorUtility.DisplayDialog(title: "Download CSV",
 		   message: "Download CSV finish", "OK");
 	}
+#endif
+#if UNITY_EDITOR
+    private void InvokePopulateOnAllCollections()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:ScriptableObject");
+        int populatedCount = 0;
+
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            var so = AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
+            if (so == null) continue;
+
+            var method = so.GetType().GetMethod("PopulateDataFromCSV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+            if (method != null)
+            {
+                method.Invoke(so, null);
+                populatedCount++;
+                Debug.Log($"Populated: {so.name} ({so.GetType().Name})");
+            }
+        }
+
+        Debug.Log($"Total collections populated: {populatedCount}");
+    }
 #endif
 
 }

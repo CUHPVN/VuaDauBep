@@ -6,25 +6,31 @@ using UnityEngine.UI;
 public class TimingManager : MonoBehaviour
 {
     public static TimingManager Instance { get; private set; }
-    [SerializeField] private RectTransform Red;
-    [SerializeField] private RectTransform Yellow;
-    [SerializeField] private RectTransform Green;
+
+    [SerializeField] private Transform timingRoot;
+
+    [SerializeField] private RectTransform redBar;
+    [SerializeField] private RectTransform yellowBar;
+    [SerializeField] private RectTransform greenBar;
+    [SerializeField] private Slider anchorSlider;
+    [SerializeField] private Image notification;
+
     [SerializeField] private float redSizeX;
-    [SerializeField] private float yPer= 0.75f;
-    [SerializeField] private Vector2 ySize=Vector2.zero;
-    [SerializeField] private float gPer= 0.25f;
-    [SerializeField] private Vector2 gSize = Vector2.zero;
-    [SerializeField] private const float constSpeed= 0.1f;
-    [SerializeField] private float speed=0;
-    [SerializeField] private bool Inc = true;
-    [SerializeField] private bool isInteract=false;
-    [SerializeField] private Slider Anchor;
-    [SerializeField] private Image Notifi;
+    [SerializeField] private float yellowPercent = 0.75f;
+    [SerializeField] private Vector2 yellowSize = Vector2.zero;
+    [SerializeField] private float greenPercent = 0.25f;
+    [SerializeField] private Vector2 greenSize = Vector2.zero;
+
+    [SerializeField] private const float constSpeed = 0.1f;
+    [SerializeField] private float speed = 0;
+    [SerializeField] private bool increasing = true;
+    [SerializeField] private bool isInteract = false;
+
     private const string TimingCollectionAssetAddress = "TimingCollection";
     private static Dictionary<int, Vector2> _timingDictionary = new();
-    //DebugZone
-    [SerializeField] private bool IsDebug=false;
-    [SerializeField] private Transform DebugPanel;
+
+    [SerializeField] private bool isDebug = false;
+    [SerializeField] private Transform debugPanel;
     [SerializeField] private Slider yellowSlider;
     [SerializeField] private Slider greenSlider;
     [SerializeField] private Slider speedSlider;
@@ -36,183 +42,197 @@ public class TimingManager : MonoBehaviour
     {
         Instance = this;
     }
+
     private void OnEnable()
     {
-        LoadComponent();
+            ActivateTimingUI();
     }
-    void Start()
+
+    private void Start()
     {
-        Red = transform.Find("RedBar").GetComponent<RectTransform>();
-        redSizeX = Red.sizeDelta.x;
-        Yellow = transform.Find("YellowBar").GetComponent<RectTransform>();
-        Green = transform.Find("GreenBar").GetComponent<RectTransform>();
-        Anchor = transform.Find("SliderBar").GetComponent<Slider>();
-        Notifi = transform.Find("Notifi").GetComponent<Image>();
-        DebugPanel = transform.Find("Debug");
-        yellowSlider = DebugPanel.Find("Y").GetComponent<Slider>();
-        greenSlider = DebugPanel.Find("G").GetComponent<Slider>();
-        speedSlider = DebugPanel.Find("Speed").GetComponent<Slider>();
+        redBar = timingRoot.Find("RedBar").GetComponent<RectTransform>();
+        redSizeX = redBar.sizeDelta.x;
+
+        yellowBar = timingRoot.Find("YellowBar").GetComponent<RectTransform>();
+        greenBar = timingRoot.Find("GreenBar").GetComponent<RectTransform>();
+        anchorSlider = timingRoot.Find("SliderBar").GetComponent<Slider>();
+        notification = timingRoot.Find("Notifi").GetComponent<Image>();
+
+        debugPanel = timingRoot.Find("Debug");
+        yellowSlider = debugPanel.Find("Y").GetComponent<Slider>();
+        greenSlider = debugPanel.Find("G").GetComponent<Slider>();
+        speedSlider = debugPanel.Find("Speed").GetComponent<Slider>();
+
         yellowField = yellowSlider.GetComponentInChildren<TMP_InputField>();
         greenField = greenSlider.GetComponentInChildren<TMP_InputField>();
         speedField = speedSlider.GetComponentInChildren<TMP_InputField>();
+
         InitEvent();
         InitData();
     }
 
-    void Update()
+    private void Update()
     {
         RunDebug();
         UpdateTiming();
         CheckSubmit();
     }
+
     private void FixedUpdate()
     {
         UpdateSlider();
     }
-    public void StartDebug()
+
+    public void ActivateTimingUI()
     {
-        IsDebug = !IsDebug;
-    }
-    void RunDebug()
-    {
-        if (!IsDebug)
-        {
-            if (DebugPanel.gameObject.activeSelf) { DebugPanel.gameObject.SetActive(false); }
-            return;
-        }
-        if (!DebugPanel.gameObject.activeSelf) {
-            DebugPanel.gameObject.SetActive(true);
-            speedSlider.value = speed;
-            yellowSlider.value = yPer;
-            greenSlider.value = gPer;
-            yellowField.text = "" + yPer;
-            greenField.text = "" + gPer;
-            speedField.text = "" + speed;
-        }
-    }
-    void InitData()
-    {
-        var timingData = Resources.Load<TimingCollection>(TimingCollectionAssetAddress);
-        var dataTable = timingData.DataTable;
-        foreach (var data in dataTable)
-        {
-            _timingDictionary[data.Level]=(new Vector2(data.Green,data.Yellow));
-        }
-        //foreach(var data in _timingDictionary)
-        //{
-        //    Debug.Log(data.ToString());
-        //}
-    }
-    void InitEvent()
-    {
-        yellowSlider.onValueChanged.AddListener(ChangedYBySlider);
-        greenSlider.onValueChanged.AddListener(ChangedGBySlider);
-        speedSlider.onValueChanged.AddListener(ChangedSBySlider);
-        yellowField.onSubmit.AddListener(ChangedYByInput);
-        greenField.onSubmit.AddListener(ChangedGByInput);
-        speedField.onSubmit.AddListener(ChangedSByInput);
-    }
-    void ChangedYByInput(string value)
-    {
-        yPer = float.Parse(value);
-        yellowSlider.value = yPer;
-    }
-    void ChangedGByInput(string value)
-    {
-        gPer = float.Parse(value);
-        greenSlider.value = gPer;
-    }
-    void ChangedSByInput(string value)
-    {
-        speed = float.Parse(value);
-        speedSlider.value = speed;
-    }
-    void ChangedYBySlider(float value)
-    {
-        if (yPer == value) return;
-        yPer = value;
-        yellowField.text = "" + yPer;
-    }
-    void ChangedGBySlider(float value)
-    {
-        if (gPer == value) return;
-        gPer = value;
-        greenField.text = "" + gPer;
-    }
-    void ChangedSBySlider(float value)
-    {
-        if (speed == value) return;
-        if (speed != 0)
-        {
-            speed = value;
-        }
-        speedField.text = "" + value;
-    }
-    void UpdateTiming()
-    {
-        ySize = new Vector2(yPer*redSizeX,Yellow.sizeDelta.y);
-        gSize = new Vector2(gPer*redSizeX, Green.sizeDelta.y);
-        Yellow.sizeDelta = ySize;
-        Green.sizeDelta = gSize;
-        if (Anchor.value == 0)  Inc = true;
-        if (Anchor.value == 1)  Inc = false;
-    }
-    void UpdateSlider()
-    {
-        if (Inc)
-        {
-            Anchor.value += speed*constSpeed;
-        }
-        else
-        {
-            Anchor.value -= speed*constSpeed;
-        }
-    }
-    void CheckSubmit()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            if (!isInteract)
-            {
-                isInteract = true;
-                speed = 0;
-                if (Mathf.Abs(Anchor.value - 0.5f) <= gPer / 2)
-                {
-                    Notifi.color = Color.green;
-                }
-                else if (Mathf.Abs(Anchor.value - 0.5f) <= yPer / 2)
-                {
-                    Notifi.color = Color.yellow;
-                }
-                else
-                {
-                    Notifi.color = Color.red;
-                }
-                Notifi.gameObject.SetActive(true);
-                Invoke(nameof(TurnOff), 1f);
-            }
-        }
-    }
-    void TurnOff()
-    {
-        Notifi.gameObject.SetActive(false);
-        gameObject.SetActive(false);
-    }
-    void LoadComponent()
-    {
-        if(_timingDictionary == null) InitData();
+        if (_timingDictionary == null || _timingDictionary.Count == 0)
+            InitData();
+
         isInteract = false;
-        if (IsDebug) speed = speedSlider.value;else
-            speed = 0.2f;
-        if (Anchor != null) 
-            Anchor.value = 0;
+        speed = isDebug ? speedSlider.value : 0.25f;
+        if (anchorSlider != null)
+            anchorSlider.value = 0;
+    }
+
+    public void ToggleDebug()
+    {
+        isDebug = !isDebug;
     }
 
     public void TurnOn(int level)
     {
-        if (_timingDictionary == null) InitData();
-        if (level > _timingDictionary.Count) return;
-        gPer = _timingDictionary[level].x/100f;
-        yPer = _timingDictionary[level].y/100f;
+        timingRoot.gameObject.SetActive(true);
+        if (_timingDictionary == null || !_timingDictionary.ContainsKey(level)) return;
+        ActivateTimingUI();
+        var values = _timingDictionary[level];
+        greenPercent = values.x / 100f;
+        yellowPercent = values.y / 100f;
+    }
+
+    private void InitData()
+    {
+        var timingData = Resources.Load<TimingCollection>(TimingCollectionAssetAddress);
+        foreach (var data in timingData.DataTable)
+        {
+            _timingDictionary[data.Level] = new Vector2(data.Green, data.Yellow);
+        }
+    }
+
+    private void InitEvent()
+    {
+        yellowSlider.onValueChanged.AddListener(ChangedYBySlider);
+        greenSlider.onValueChanged.AddListener(ChangedGBySlider);
+        speedSlider.onValueChanged.AddListener(ChangedSBySlider);
+
+        yellowField.onSubmit.AddListener(ChangedYByInput);
+        greenField.onSubmit.AddListener(ChangedGByInput);
+        speedField.onSubmit.AddListener(ChangedSByInput);
+    }
+
+    private void RunDebug()
+    {
+        if (!isDebug)
+        {
+            if (debugPanel.gameObject.activeSelf)
+                debugPanel.gameObject.SetActive(false);
+            return;
+        }
+
+        if (!debugPanel.gameObject.activeSelf)
+        {
+            debugPanel.gameObject.SetActive(true);
+            speedSlider.value = speed;
+            yellowSlider.value = yellowPercent;
+            greenSlider.value = greenPercent;
+            yellowField.text = yellowPercent.ToString();
+            greenField.text = greenPercent.ToString();
+            speedField.text = speed.ToString();
+        }
+    }
+
+    private void ChangedYByInput(string value)
+    {
+        if (float.TryParse(value, out var result))
+        {
+            yellowPercent = result;
+            yellowSlider.value = yellowPercent;
+        }
+    }
+
+    private void ChangedGByInput(string value)
+    {
+        if (float.TryParse(value, out var result))
+        {
+            greenPercent = result;
+            greenSlider.value = greenPercent;
+        }
+    }
+
+    private void ChangedSByInput(string value)
+    {
+        if (float.TryParse(value, out var result))
+        {
+            speed = result;
+            speedSlider.value = speed;
+        }
+    }
+
+    private void ChangedYBySlider(float value)
+    {
+        if (Mathf.Approximately(yellowPercent, value)) return;
+        yellowPercent = value;
+        yellowField.text = value.ToString();
+    }
+
+    private void ChangedGBySlider(float value)
+    {
+        if (Mathf.Approximately(greenPercent, value)) return;
+        greenPercent = value;
+        greenField.text = value.ToString();
+    }
+
+    private void ChangedSBySlider(float value)
+    {
+        if (Mathf.Approximately(speed, value)) return;
+        speed = value;
+        speedField.text = value.ToString();
+    }
+
+    private void UpdateTiming()
+    {
+        yellowSize = new Vector2(yellowPercent * redSizeX, yellowBar.sizeDelta.y);
+        greenSize = new Vector2(greenPercent * redSizeX, greenBar.sizeDelta.y);
+
+        yellowBar.sizeDelta = yellowSize;
+        greenBar.sizeDelta = greenSize;
+
+        if (anchorSlider.value == 0) increasing = true;
+        if (anchorSlider.value == 1) increasing = false;
+    }
+
+    private void UpdateSlider()
+    {
+        anchorSlider.value += (increasing ? 1 : -1) * speed * constSpeed;
+    }
+
+    private void CheckSubmit()
+    {
+        if (!Input.GetKeyDown(KeyCode.Space) || isInteract) return;
+
+        isInteract = true;
+        speed = 0;
+
+        float offset = Mathf.Abs(anchorSlider.value - 0.5f);
+        notification.color = offset <= greenPercent / 2f ? Color.green :
+                             offset <= yellowPercent / 2f ? Color.yellow : Color.red;
+
+        notification.gameObject.SetActive(true);
+        Invoke(nameof(TurnOff), 1f);
+    }
+
+    private void TurnOff()
+    {
+        notification.gameObject.SetActive(false);
+        timingRoot.gameObject.SetActive(false);
     }
 }

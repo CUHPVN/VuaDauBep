@@ -34,24 +34,20 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     private void Start()
     {
         gameInput.OnInteractAction += GameInput_OnInteractAction;
+        gameInput.OnInteractAlternateAction += GameInput_OnInteractAlternateAction;
     }
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
-        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
-
-        Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
-        if (moveDir != Vector3.zero)
+        if(selectedCounter != null)
         {
-            lastInteractDir = moveDir;
+            selectedCounter.Interact(this);
         }
-        float interactDistance = 2f;
-
-        if (Physics.Raycast(transform.position, lastInteractDir, out RaycastHit raycastHit, interactDistance, countersLayerMask))
+    }
+    private void GameInput_OnInteractAlternateAction(object sender, System.EventArgs e)
+    {
+        if (selectedCounter != null)
         {
-            if (raycastHit.transform.TryGetComponent(out BaseCounter BaseCounter))
-            {
-                BaseCounter.Interact(this);
-            }
+            selectedCounter.InteractAlternate(this);
         }
     }
     private void Update()
@@ -101,6 +97,8 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         Vector2 inputVector =  gameInput.GetMovementVectorNormalized();
 
         Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
+        float rotateSpeed = 10f;
+        if (moveDir != Vector3.zero) transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * rotateSpeed);
         float moveDistance = Time.deltaTime * moveSpeed;
         float playerRadius = 0.7f;
         float playerHeight = 2f;
@@ -128,9 +126,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
             transform.position += moveDir * moveDistance;
         }
         isWalking = moveDir != Vector3.zero;
-        float rotateSpeed = 10f;
-        if(moveDir != Vector3.zero) 
-        transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * rotateSpeed);
+       
     }
     private void SetSelectedCounter(BaseCounter selectedCounter)
     {

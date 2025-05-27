@@ -35,7 +35,6 @@ public class DebugTest : MonoBehaviour
 
     void PlayLevel(int level)
     {
-        timingManager.gameObject.SetActive(true);
         TimingManager.Instance.TurnOn(level);
     }
 }

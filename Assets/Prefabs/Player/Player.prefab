@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 2386773495316806944}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.55}
+  m_LocalPosition: {x: 0, y: 0.5, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -396,6 +396,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d912a6c2573e38749879c75354e22267, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerHand: {fileID: 2269531471873044021}
   moveSpeed: 7
   gameInput: {fileID: 5055904493814186390}
   countersLayerMask:
