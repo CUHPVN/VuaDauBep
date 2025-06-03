@@ -10,6 +10,7 @@ public class SelectedCounterVisual : MonoBehaviour
     }
     private void Player_OnSelectedCounterChanged(object sender, Player.OnSelectedCounterChangedEventArgs e)
     {
+        if (e.selectedCounter == null) return;
         if(e.selectedCounter == baseCounter)
         {
             Show();
